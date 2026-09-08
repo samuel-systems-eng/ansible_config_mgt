@@ -1,3 +1,6 @@
-[uat-webservers]
-Web1-UAT-172.31.17.206 ansible_ssh_user='ec2-user'
-Web2-UAT-172.31.27.78 ansible_ssh_user='ec2-user'
+uat-webservers:
+  hosts:
+    Web1-UAT:
+      ansible_host: 172.31.17.206
+    Web2-UAT:
+      ansible_host: 172.31.27.78
