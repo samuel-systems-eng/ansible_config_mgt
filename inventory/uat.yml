@@ -4,3 +4,5 @@ uat-webservers:
       ansible_host: 172.31.17.206
     Web2-UAT:
       ansible_host: 172.31.27.78
+  vars:
+    ansible_user: ubuntu    # <--- EXPLICITLY FORCES ANSIBLE TO USE THE UBUNTU USER    
