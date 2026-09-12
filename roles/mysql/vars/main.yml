@@ -1,0 +1,10 @@
+mysql_root_password: ""
+mysql_databases:
+  - name: tooling
+    encoding: utf8
+    collation: utf8_general_ci
+mysql_users:
+  - name: webaccess
+    host: "172.31.32.0/20" # Webserver subnet cidr
+    password: Admin123
+    priv: "tooling.*:ALL"
