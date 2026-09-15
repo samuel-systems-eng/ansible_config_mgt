@@ -1,14 +1,16 @@
 ---
-- hosts: all
-  name: Include dynamic variables
-  become: yes
-  tasks:
-    - include_tasks: ../dynamic-assignments/env-vars.yml
-      tags:
-        - always
+- name: Include dynamic environment variables
+  import_playbook: ../dynamic-assignments/env-vars.yml
+  ignore_unreachable: true
 
-- import_playbook: ../static-assignments/common.yml
+- name: Import webserver assignment
+  import_playbook: ../static-assignments/common.yml
+  ignore_unreachable: true
 
-- import_playbook: ../static-assignments/uat-webservers.yml
+- name: Import load balancer assignment
+  import_playbook: ../static-assignments/loadbalancers.yml
+  ignore_unreachable: true
 
-- import_playbook: ../static-assignments/loadbalancers.yml
+- name: Import db-server assignment
+  import_playbook: ../static-assignments/db-servers.yml
+  ignore_unreachable: true
