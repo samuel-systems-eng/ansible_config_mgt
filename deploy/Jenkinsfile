@@ -50,6 +50,7 @@ pipeline {
                         // Passes your tag parameter directly into the native Ansible plugin wrapper execution
                         tags: "${params.ansible_tags}",
                         extraVars: [ansible_ssh_timeout: 5] 
+                        inventory: "${params.inventory}"
                     )
                 }
             }
