@@ -1,12 +1,17 @@
 pipeline {
     agent any
 
-    // This block declares the environment variables menu option natively
+    // This block cleanly implements both the Environment and the Ansible Tags task requirements
     parameters {
         choice(
-            name: 'ENVIRONMENT', 
+            name: 'inventory', 
             choices: ['dev', 'sit'], 
-            description: 'Select the target deployment environment profile for Ansible execution'
+            description: 'Select the target deployment environment profile'
+        )
+        string(
+            name: 'ansible_tags', 
+            defaultValue: 'webserver', 
+            description: 'Specify an Ansible tag to run specific roles or tasks (e.g., webserver)'
         )
     }
 
@@ -17,31 +22,33 @@ pipeline {
     stages {
         stage('Initialise Workspace') {
             steps {
-                echo "Executing on workspace branch: ${env.GIT_BRANCH}"
-                echo "Target deployment selection: ${params.ENVIRONMENT}"
+                echo "Executing securely on workspace branch: ${env.GIT_BRANCH}"
+                echo "Target selection: ${params.inventory} environment using tags: ${params.ansible_tags}"
             }
         }
 
         stage('Prepare Ansible Configuration') {
             steps {
                 echo "Dynamically injecting workspace target into ansible.cfg"
+                // Cleans up old configuration path layers dynamically
                 sh 'sed -i "s|roles_path = .*|roles_path = ./roles:${WORKSPACE}/roles|g" ${WORKSPACE}/deploy/ansible.cfg'
             }
         }
 
         stage('Run Ansible playbook') {
             steps {
-                echo "Invoking Ansible playbook execution against the ${params.ENVIRONMENT} environment..."
+                echo "Invoking Ansible playbook execution against the ${params.inventory} environment..."
                 sshagent(['private-key']) {
                     ansiblePlaybook(
                         become: true,
                         credentialsId: 'private-key',
                         disableHostKeyChecking: true,
                         installation: 'ansible',
-                        // DYNAMIC INVENTORY SELECTION:
-                        // Instead of hardcoding dev.yml, it reads your parameter choice dynamically!
-                        inventory: "${WORKSPACE}/inventory/${params.ENVIRONMENT}.yml",
+                        inventory: "${WORKSPACE}/inventory/${params.inventory}.yml",
                         playbook: "${WORKSPACE}/playbooks/site.yml",
+                        // TAGS IMPLEMENTATION BELOW:
+                        // Passes your tag parameter directly into the native Ansible plugin wrapper execution
+                        tags: "${params.ansible_tags}",
                         extraVars: [ansible_ssh_timeout: 5] 
                     )
                 }
