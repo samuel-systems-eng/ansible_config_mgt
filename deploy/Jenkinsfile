@@ -1,6 +1,15 @@
 pipeline {
     agent any
 
+    // This block declares the environment variables menu option natively
+    parameters {
+        choice(
+            name: 'ENVIRONMENT', 
+            choices: ['dev', 'sit'], 
+            description: 'Select the target deployment environment profile for Ansible execution'
+        )
+    }
+
     environment {
         ANSIBLE_CONFIG = "${WORKSPACE}/deploy/ansible.cfg"
     }
@@ -9,30 +18,29 @@ pipeline {
         stage('Initialise Workspace') {
             steps {
                 echo "Executing on workspace branch: ${env.GIT_BRANCH}"
-                echo "Active Workspace Path: ${WORKSPACE}"
-                // Verification step to print out files currently downloaded
-                sh 'ls -la ${WORKSPACE}/deploy/'
+                echo "Target deployment selection: ${params.ENVIRONMENT}"
             }
         }
 
         stage('Prepare Ansible Configuration') {
             steps {
                 echo "Dynamically injecting workspace target into ansible.cfg"
-                // Dynamically updates the roles_path to match the active workspace folder
                 sh 'sed -i "s|roles_path = .*|roles_path = ./roles:${WORKSPACE}/roles|g" ${WORKSPACE}/deploy/ansible.cfg'
             }
         }
 
         stage('Run Ansible playbook') {
             steps {
-                echo 'Invoking Ansible configuration management...'
+                echo "Invoking Ansible playbook execution against the ${params.ENVIRONMENT} environment..."
                 sshagent(['private-key']) {
                     ansiblePlaybook(
                         become: true,
                         credentialsId: 'private-key',
                         disableHostKeyChecking: true,
                         installation: 'ansible',
-                        inventory: "${WORKSPACE}/inventory/dev.yml",
+                        // DYNAMIC INVENTORY SELECTION:
+                        // Instead of hardcoding dev.yml, it reads your parameter choice dynamically!
+                        inventory: "${WORKSPACE}/inventory/${params.ENVIRONMENT}.yml",
                         playbook: "${WORKSPACE}/playbooks/site.yml",
                         extraVars: [ansible_ssh_timeout: 5] 
                     )
