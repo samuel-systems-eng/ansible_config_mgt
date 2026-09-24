@@ -6,17 +6,19 @@ pipeline {
     }
 
     stages {
-        stage('Initial Cleanup') {
+        stage('Initialise Workspace') {
             steps {
-                echo 'Wiping historical workspace cache...'
-                cleanWs()
+                echo "Executing on workspace branch: ${env.GIT_BRANCH}"
+                echo "Active Workspace Path: ${WORKSPACE}"
+                // Verification step to print out files currently downloaded
+                sh 'ls -la ${WORKSPACE}/deploy/'
             }
         }
 
         stage('Prepare Ansible Configuration') {
             steps {
-                echo "Dynamically injecting workspace target into ansible.cfg: ${WORKSPACE}"
-                // Seamlessly updates the roles_path to match the exact location of the current branch/workspace
+                echo "Dynamically injecting workspace target into ansible.cfg"
+                // Dynamically updates the roles_path to match the active workspace folder
                 sh 'sed -i "s|roles_path = .*|roles_path = ./roles:${WORKSPACE}/roles|g" ${WORKSPACE}/deploy/ansible.cfg'
             }
         }
@@ -32,8 +34,6 @@ pipeline {
                         installation: 'ansible',
                         inventory: "${WORKSPACE}/inventory/dev.yml",
                         playbook: "${WORKSPACE}/playbooks/site.yml",
-                        // EXTRA TIMEOUT VALUE BELOW:
-                        // Drops connection timeout to 5 seconds so powered-down servers do not stall your pipeline!
                         extraVars: [ansible_ssh_timeout: 5] 
                     )
                 }
@@ -43,7 +43,7 @@ pipeline {
     
     post {
         always {
-            echo 'Cleaning workspace components post-execution...'
+            echo 'Wiping workspace components post-execution...'
             cleanWs(cleanWhenAborted: true, cleanWhenFailure: true, deleteDirs: true)
         }
     }
