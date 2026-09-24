@@ -1,8 +1,0 @@
-uat-webservers:
-  hosts:
-    Web1-UAT:
-      ansible_host: 172.31.17.206
-    Web2-UAT:
-      ansible_host: 172.31.27.78
-  vars:
-    ansible_user: ec2-user    # <--- EXPLICITLY FORCES ANSIBLE TO USE THE EC2-USER    

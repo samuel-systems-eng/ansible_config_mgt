@@ -1,42 +1,50 @@
-   pipeline {
+pipeline {
     agent any
 
-  stages {
-    stage('Build') {
-      steps {
-        script {
-          sh 'echo "Building Stage"'
-        }
-      }
+    environment {
+        ANSIBLE_CONFIG = "${WORKSPACE}/deploy/ansible.cfg"
     }
 
-    stage('Test') {
-      steps {
-        script {
-          sh 'echo "Testing Stage"'
+    stages {
+        stage('Initial Cleanup') {
+            steps {
+                echo 'Wiping historical workspace cache...'
+                cleanWs()
+            }
         }
-      }
-    }
-    stage('Package') {
-      steps {
-        script {
-          sh 'echo "Package Stage"'
+
+        stage('Prepare Ansible Configuration') {
+            steps {
+                echo "Dynamically injecting workspace target into ansible.cfg: ${WORKSPACE}"
+                // Seamlessly updates the roles_path to match the exact location of the current branch/workspace
+                sh 'sed -i "s|roles_path = .*|roles_path = ./roles:${WORKSPACE}/roles|g" ${WORKSPACE}/deploy/ansible.cfg'
+            }
         }
-      }
-    }
-    stage('Deploy') {
-      steps {
-        script {
-          sh 'echo "Deploy Stage"'
+
+        stage('Run Ansible playbook') {
+            steps {
+                echo 'Invoking Ansible configuration management...'
+                sshagent(['private-key']) {
+                    ansiblePlaybook(
+                        become: true,
+                        credentialsId: 'private-key',
+                        disableHostKeyChecking: true,
+                        installation: 'ansible',
+                        inventory: "${WORKSPACE}/inventory/dev.yml",
+                        playbook: "${WORKSPACE}/playbooks/site.yml",
+                        // EXTRA TIMEOUT VALUE BELOW:
+                        // Drops connection timeout to 5 seconds so powered-down servers do not stall your pipeline!
+                        extraVars: [ansible_ssh_timeout: 5] 
+                    )
+                }
+            }
         }
-      }
     }
-    stage('Clean up') {
-      steps {
-        script {
-          sh 'echo "Clean up Stage"'
+    
+    post {
+        always {
+            echo 'Cleaning workspace components post-execution...'
+            cleanWs(cleanWhenAborted: true, cleanWhenFailure: true, deleteDirs: true)
         }
-      }
-    }
     }
 }
