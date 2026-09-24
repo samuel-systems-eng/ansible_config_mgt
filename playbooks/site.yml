@@ -1,4 +1,11 @@
 ---
+- name: Configure Webservers
+  hosts: webservers
+  tags:
+    - webserver
+  roles:
+    - webserver
+
 - name: Include dynamic environment variables
   import_playbook: ../dynamic-assignments/env-vars.yml
   ignore_unreachable: true

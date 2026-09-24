@@ -3,12 +3,7 @@
   hosts: all
   tasks:
     - name: Dynamically include environment variables
-      include_vars: "{{ item }}"
-      with_first_found:
-        - files:
-            - "{{ env }}.yml"
-            - "default.yml"
-          paths:
-            - "{{ playbook_dir }}/../env-vars"
+      include_vars:
+        file: "{{ playbook_dir }}/../env_vars/{{ inventory }}.yml"
       tags:
         - always

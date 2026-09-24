@@ -1,8 +1,9 @@
-uat-webservers:
-  hosts:
-    Web1-UAT:
-      ansible_host: 172.31.17.206
-    Web2-UAT:
-      ansible_host: 172.31.27.78
-  vars:
-    ansible_user: ec2-user    # <--- EXPLICITLY FORCES ANSIBLE TO USE THE EC2-USER    
+[lb]
+load_balancer ansible_host=172.31.18.75 ansible_ssh_user='ubuntu'
+
+[uat_webservers]
+Web1 ansible_host=172.31.17.206 ansible_ssh_user='ec2-user'
+Web2 ansible_host=172.31.27.78 ansible_ssh_user='ec2-user'
+
+[db_servers]
+db ansible_host=172.31.24.240 ansible_ssh_user='ubuntu'
