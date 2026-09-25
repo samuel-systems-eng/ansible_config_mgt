@@ -24,7 +24,7 @@ pipeline {
         )
     
     // Implements the Ansible tagging functionality required for your upcoming Webserver/TODO application tasks
-        choice(
+        string(
             name: 'ANSIBLE_TAGS', 
             defaultValue: 'artifactory', 
             description: 'Ansible tags to restrict role execution targets'
