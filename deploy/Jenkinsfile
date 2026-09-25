@@ -35,49 +35,48 @@ pipeline {
     environment {
         ANSIBLE_CONFIG = "${WORKSPACE}/deploy/ansible.cfg"
     }
-
-    stages {
+    
         stage('Initialise Workspace') {
             steps {
                 echo "Executing securely on workspace branch: ${env.GIT_BRANCH}"
-                // ADD THIS NEW LINE BELOW TO FORCE A COLD CACHE RESET:
                 echo "CACHE_RESET_VERIFICATION_TIMESTAMP: 2026-09-25"
-                echo "Target selection: ${params.inventory} environment using tags: ${params.ansible_tags}"
+                // Groovy fallback injection:
+                script {
+                    env.ACTUAL_TAG = params.ANSIBLE_TAGS ?: 'artifactory'
+                }
+                echo "Target selection: ${params.INVENTORY_ENV} environment using tags: ${env.ACTUAL_TAG}"
             }
         }
-
+        
         stage('Prepare Ansible Configuration') {
             steps {
                 echo "Dynamically injecting workspace target into ansible.cfg"
-                // Cleans up old configuration path layers dynamically
                 sh 'sed -i "s|roles_path = .*|roles_path = ./roles:${WORKSPACE}/roles|g" ${WORKSPACE}/deploy/ansible.cfg'
             }
         }
 
         stage('Run Ansible playbook') {
             steps {
-                echo "Invoking Ansible playbook execution against the ${params.inventory} environment..."
+                echo "Invoking Ansible playbook execution against the ${params.INVENTORY_ENV} environment..."
                 sshagent(['private-key']) {
                     ansiblePlaybook(
                         become: true,
                         credentialsId: 'private-key',
                         disableHostKeyChecking: true,
                         installation: 'ansible',
-                        inventory: "${WORKSPACE}/inventory/${params.inventory}.yml",
+                        inventory: "${WORKSPACE}/inventory/${params.INVENTORY_ENV}.yml",
                         playbook: "${WORKSPACE}/playbooks/site.yml",
-                        // TAGS IMPLEMENTATION BELOW:
-                        // Passes your tag parameter directly into the native Ansible plugin wrapper execution
-                        tags: "${params.ansible_tags}",
+                        // FORCE THE ACTUALLY ASSIGNED STRING DOWNSTREAM:
+                        tags: "${env.ACTUAL_TAG}",
                         extraVars: [
-                            ansible_ssh_timeout: 5, 
-                            inventory: "${params.inventory}"
-                        ]
+                            ansible_ssh_timeout: 5,
+                            inventory: "${params.INVENTORY_ENV}"
+                        ] 
                     )
                 }
             }
         }
-    }
-    
+
     post {
         always {
             echo 'Wiping workspace components post-execution...'
