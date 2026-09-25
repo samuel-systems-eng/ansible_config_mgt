@@ -5,14 +5,31 @@ pipeline {
     parameters {
         choice(
             name: 'inventory', 
-            choices: ['dev', 'sit'], 
+            choices: ['dev', 'sit', 'uat'], 
             description: 'Select the target deployment environment profile'
         )
-        string(
-            name: 'ansible_tags', 
-            defaultValue: 'webserver', 
-            description: 'Specify an Ansible tag to run specific roles or tasks (e.g., webserver)'
+    
+    // Kept as a parameter to allow testing different playbooks if required
+        choice(
+            name: 'PLAYBOOK_PATH', 
+            choices: ['playbooks/site.yml', 'playbooks/db.yml', 'playbooks/web.yml'], 
+            description: 'Select the target playbook to run'
         )
+    
+    // Keeps the option open to toggle security key identifiers if environments shift
+      choice(
+            name: 'CREDENTIALS_ID', 
+            choices: ['private-key', 'prod-key', 'sit-key'], 
+            description: 'Select the SSH key credential profile'
+        )
+    
+    // Implements the Ansible tagging functionality required for your upcoming Webserver/TODO application tasks
+        choice(
+            name: 'ANSIBLE_TAGS', 
+            choices: ['webserver', 'nginx', 'apache'] 
+            description: 'Ansible tags to restrict role execution targets'
+        )
+
     }
 
     environment {
