@@ -1,3 +1,4 @@
-enable_nginx_lb: false
-enable_apache_lb: true
-load_balancer_is_required: true
+# JFROG ARTIFACTORY SYSTEM INITIALIZATION PARAMETERS:
+artifactory_enabled: true
+xray_enabled: false
+insight_enabled: false
