@@ -27,7 +27,7 @@ pipeline {
         choice(
             name: 'ANSIBLE_TAGS', 
             choices: ['webserver', 'nginx', 'apache'] 
-            description: 'Ansible tags to restrict role execution targets'
+            description: 'Ansible tags to restrict role execution targets',
         )
 
     }
