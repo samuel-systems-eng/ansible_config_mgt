@@ -3,7 +3,12 @@
   hosts: artifactory
   become: true
   tags:
-    - artifactory # This bridges your parameter to this specific play!
+    - artifactory
+  # FORCED VARIABLE INJECTION TO OVERRIDE FILE LOADING ORDER:
+  vars:
+    artifactory_enabled: true
+    xray_enabled: false
+    insight_enabled: false
   roles:
     - artifactory
 
