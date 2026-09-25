@@ -4,11 +4,13 @@
   become: true
   tags:
     - artifactory
-  # FORCED VARIABLE INJECTION TO OVERRIDE FILE LOADING ORDER:
   vars:
     artifactory_enabled: true
     xray_enabled: false
     insight_enabled: false
+    # ADD THESE CONTROLS BELOW TO BYPASS THE DEPRECATED APT-KEY CODE:
+    artifactory_nginx_install_upstream: false
+    nginx_install_upstream: false
   roles:
     - artifactory
 
