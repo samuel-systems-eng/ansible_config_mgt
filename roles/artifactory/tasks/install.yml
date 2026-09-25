@@ -47,33 +47,33 @@
     mode: 0644
   when: artifactory_allow_crontab
 
-- name: Check if artifactory tar already exists
-  become: true
-  ansible.builtin.stat:
-    path: "{{ jfrog_home_directory }}/{{ artifactory_tar_file_name }}"
-  register: artifactory_tar_check
+#- name: Check if artifactory tar already exists
+ # become: true
+  #ansible.builtin.stat:
+   # path: "{{ jfrog_home_directory }}/{{ artifactory_tar_file_name }}"
+  #register: artifactory_tar_check
 
-- name: Download artifactory
-  become: true
-  ansible.builtin.get_url:
-    url: "{{ artifactory_tar }}"
-    timeout: "{{ artifactory_download_timeout }}"
-    dest: "{{ jfrog_home_directory }}"
-  register: download_artifactory
-  until: download_artifactory is succeeded
-  retries: 3
-  when: not artifactory_tar_check.stat.exists
+#- name: Download artifactory
+ # become: true
+  #ansible.builtin.get_url:
+   # url: "{{ artifactory_tar }}"
+    #timeout: "{{ artifactory_download_timeout }}"
+    #dest: "{{ jfrog_home_directory }}"
+  #register: download_artifactory
+  #until: download_artifactory is succeeded
+  #retries: 3
+  #when: not artifactory_tar_check.stat.exists
 
-- name: Extract artifactory tar
-  become: true
-  ansible.builtin.unarchive:
-    src: "{{ jfrog_home_directory }}/{{ artifactory_tar_file_name }}"
-    dest: "{{ jfrog_home_directory }}"
-    owner: "{{ artifactory_user }}"
-    group: "{{ artifactory_group }}"
-    creates: "{{ artifactory_untar_home }}"
-    remote_src: true
-  when: (download_artifactory is succeeded) and (not ansible_check_mode)
+#- name: Extract artifactory tar
+ # become: true
+  #ansible.builtin.unarchive:
+   # src: "{{ jfrog_home_directory }}/{{ artifactory_tar_file_name }}"
+   # dest: "{{ jfrog_home_directory }}"
+   # owner: "{{ artifactory_user }}"
+   # group: "{{ artifactory_group }}"
+   # creates: "{{ artifactory_untar_home }}"
+   # remote_src: true
+  #when: (download_artifactory is succeeded) and (not ansible_check_mode)
 
 - name: Check if app directory exists
   become: true
