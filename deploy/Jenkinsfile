@@ -63,7 +63,10 @@ pipeline {
                         tags: "${env.ACTUAL_TAG}",
                         extraVars: [
                             ansible_ssh_timeout: 5,
-                            inventory: "${env.ACTUAL_ENV}"
+                            inventory: "${env.ACTUAL_ENV}",
+                            // FORCED GLOBAL OVERRIDES INJECTED BELOW:
+                            artifactory_nginx_install_upstream: false,
+                            nginx_install_upstream: false
                         ] 
                     )
                 }
