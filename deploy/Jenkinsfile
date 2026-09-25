@@ -1,53 +1,47 @@
 pipeline {
     agent any
 
-    // This block cleanly implements both the Environment and the Ansible Tags task requirements
     parameters {
         choice(
-            name: 'inventory', 
-            choices: ['ci','dev', 'sit', 'uat'], 
-            description: 'Select the target deployment environment profile'
+            name: 'INVENTORY_ENV', 
+            choices: ['ci', 'dev', 'sit', 'uat'], 
+            description: 'Target deployment profile mapping to inventory directory'
         )
-    
-    // Kept as a parameter to allow testing different playbooks if required
-        choice(
-            name: 'PLAYBOOK_PATH', 
-            choices: ['playbooks/site.yml', 'playbooks/db.yml', 'playbooks/web.yml'], 
-            description: 'Select the target playbook to run'
-        )
-    
-    // Keeps the option open to toggle security key identifiers if environments shift
-      choice(
-            name: 'CREDENTIALS_ID', 
-            choices: ['private-key', 'prod-key', 'sit-key'], 
-            description: 'Select the SSH key credential profile'
-        )
-    
-    // Implements the Ansible tagging functionality required for your upcoming Webserver/TODO application tasks
         string(
             name: 'ANSIBLE_TAGS', 
             defaultValue: 'artifactory', 
             description: 'Ansible tags to restrict role execution targets'
         )
-
+        string(
+            name: 'PLAYBOOK_PATH', 
+            defaultValue: 'playbooks/site.yml', 
+            description: 'Relative path to the target Ansible playbook'
+        )
+        string(
+            name: 'CREDENTIALS_ID', 
+            defaultValue: 'private-key', 
+            description: 'Jenkins Credentials ID for SSH mapping'
+        )
     }
 
     environment {
         ANSIBLE_CONFIG = "${WORKSPACE}/deploy/ansible.cfg"
     }
-    
+
+    stages {
         stage('Initialise Workspace') {
             steps {
                 echo "Executing securely on workspace branch: ${env.GIT_BRANCH}"
                 echo "CACHE_RESET_VERIFICATION_TIMESTAMP: 2026-09-25"
-                // Groovy fallback injection:
                 script {
-                    env.ACTUAL_TAG = params.ANSIBLE_TAGS ?: 'artifactory'
+                    // Safe programmatic override if Jenkins sets parameter to empty string or null
+                    env.ACTUAL_TAG = (params.ANSIBLE_TAGS && params.ANSIBLE_TAGS != "null") ? params.ANSIBLE_TAGS : 'artifactory'
+                    env.ACTUAL_ENV = (params.INVENTORY_ENV && params.INVENTORY_ENV != "null") ? params.INVENTORY_ENV : 'ci'
                 }
-                echo "Target selection: ${params.INVENTORY_ENV} environment using tags: ${env.ACTUAL_TAG}"
+                echo "Target selection: ${env.ACTUAL_ENV} environment using tags: ${env.ACTUAL_TAG}"
             }
         }
-        
+
         stage('Prepare Ansible Configuration') {
             steps {
                 echo "Dynamically injecting workspace target into ansible.cfg"
@@ -57,26 +51,26 @@ pipeline {
 
         stage('Run Ansible playbook') {
             steps {
-                echo "Invoking Ansible playbook execution against the ${params.INVENTORY_ENV} environment..."
+                echo "Invoking Ansible playbook execution against the ${env.ACTUAL_ENV} environment..."
                 sshagent(['private-key']) {
                     ansiblePlaybook(
                         become: true,
                         credentialsId: 'private-key',
                         disableHostKeyChecking: true,
                         installation: 'ansible',
-                        inventory: "${WORKSPACE}/inventory/${params.INVENTORY_ENV}.yml",
-                        playbook: "${WORKSPACE}/playbooks/site.yml",
-                        // FORCE THE ACTUALLY ASSIGNED STRING DOWNSTREAM:
+                        inventory: "${WORKSPACE}/inventory/${env.ACTUAL_ENV}.yml",
+                        playbook: "${WORKSPACE}/${params.PLAYBOOK_PATH}",
                         tags: "${env.ACTUAL_TAG}",
                         extraVars: [
                             ansible_ssh_timeout: 5,
-                            inventory: "${params.INVENTORY_ENV}"
+                            inventory: "${env.ACTUAL_ENV}"
                         ] 
                     )
                 }
             }
         }
-
+    }
+    
     post {
         always {
             echo 'Wiping workspace components post-execution...'
