@@ -1,0 +1,34 @@
+---
+dependencies: []
+
+galaxy_info:
+  author: "JFrog Maintainers Team <installers@jfrog.com>"
+  description: "The artifactory role installs the Artifactory Pro software onto the host."
+  company: JFrog
+  issue_tracker_url: "https://github.com/jfrog/JFrog-Cloud-Installers/issues"
+  license: license (Apache-2.0)
+  min_ansible_version: 2.9
+  platforms:
+    - name: EL
+      versions:
+        - 8
+        - 9
+        - 10
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+        - trixie
+    - name: Amazon
+      versions:
+        - 3
+    - name: SLES
+      versions:
+        - '15'
+  galaxy_tags:
+    - artifactory
+    - jfrog

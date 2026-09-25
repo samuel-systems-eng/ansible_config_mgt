@@ -5,7 +5,7 @@ pipeline {
     parameters {
         choice(
             name: 'inventory', 
-            choices: ['dev', 'sit', 'uat'], 
+            choices: ['ci','dev', 'sit', 'uat'], 
             description: 'Select the target deployment environment profile'
         )
     
@@ -26,7 +26,7 @@ pipeline {
     // Implements the Ansible tagging functionality required for your upcoming Webserver/TODO application tasks
         choice(
             name: 'ANSIBLE_TAGS', 
-            choices: ['webserver', 'nginx', 'apache'], 
+            choices: ['artifactory','webserver', 'nginx', 'apache'], 
             description: 'Ansible tags to restrict role execution targets'
         )
 

@@ -1,4 +1,12 @@
 ---
+- name: Install and Configure JFrog Artifactory
+  hosts: artifactory
+  become: true
+  tags:
+    - artifactory # This bridges your parameter to this specific play!
+  roles:
+    - artifactory
+
 - name: Configure Webservers
   hosts: webservers
   tags:
