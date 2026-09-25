@@ -40,6 +40,8 @@ pipeline {
         stage('Initialise Workspace') {
             steps {
                 echo "Executing securely on workspace branch: ${env.GIT_BRANCH}"
+                // ADD THIS NEW LINE BELOW TO FORCE A COLD CACHE RESET:
+                echo "CACHE_RESET_VERIFICATION_TIMESTAMP: 2026-09-25"
                 echo "Target selection: ${params.inventory} environment using tags: ${params.ansible_tags}"
             }
         }
