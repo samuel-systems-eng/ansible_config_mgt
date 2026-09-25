@@ -1,6 +1,7 @@
 ---
 - name: Collate variables from environment-specific file
   hosts: all
+  gather_facts: false # FORCED OVERRIDE: Stops variable play from touching the full disk layout
   tasks:
     - name: Dynamically include environment variables
       include_vars:
