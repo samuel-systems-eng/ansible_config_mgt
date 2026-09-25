@@ -26,8 +26,8 @@ pipeline {
     // Implements the Ansible tagging functionality required for your upcoming Webserver/TODO application tasks
         choice(
             name: 'ANSIBLE_TAGS', 
-            choices: ['webserver', 'nginx', 'apache'] 
-            description: 'Ansible tags to restrict role execution targets',
+            choices: ['webserver', 'nginx', 'apache'], 
+            description: 'Ansible tags to restrict role execution targets'
         )
 
     }
