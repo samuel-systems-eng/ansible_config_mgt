@@ -2,7 +2,7 @@
 172.31.21.94 ansible_ssh_user=ubuntu
 
 [Todo]
-100.55.18.175 ansible_ssh_user=ec2-user
+172.31.26.224 ansible_ssh_user=ec2-user
 
 [Tooling]
 172.31.18.179 ansible_ssh_user=ec2-user
