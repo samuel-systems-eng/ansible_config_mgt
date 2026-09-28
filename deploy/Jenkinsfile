@@ -48,9 +48,8 @@ pipeline {
 
         stage('Run Ansible playbook') {
             steps {
-                echo "Invoking Ansible playbook execution against the ${params.inventory} environment..."
+                echo "FORCE RUN: Invoking Ansible playbook execution against the ${params.inventory} environment..."
                 sshagent(['private-key']) {
-                    // BYPASS ENVELOPE: Running via native shell to safely isolate exit statuses from unreachable nodes
                     sh '''
                         ansible-playbook \
                           -i ${WORKSPACE}/inventory/${inventory}.yml \
