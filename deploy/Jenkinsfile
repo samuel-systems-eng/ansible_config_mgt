@@ -9,27 +9,26 @@ pipeline {
             description: 'Select the target deployment environment profile'
         )
     
-    // Kept as a parameter to allow testing different playbooks if required
+        // Kept as a parameter to allow testing different playbooks if required
         choice(
             name: 'PLAYBOOK_PATH', 
             choices: ['playbooks/site.yml', 'playbooks/db.yml', 'playbooks/web.yml'], 
             description: 'Select the target playbook to run'
         )
     
-    // Keeps the option open to toggle security key identifiers if environments shift
-      choice(
+        // Keeps the option open to toggle security key identifiers if environments shift
+        choice(
             name: 'CREDENTIALS_ID', 
             choices: ['private-key', 'prod-key', 'sit-key'], 
             description: 'Select the SSH key credential profile'
         )
     
-    // Implements the Ansible tagging functionality required for your upcoming Webserver/TODO application tasks
+        // Implements the Ansible tagging functionality required for your upcoming Webserver/TODO application tasks
         choice(
             name: 'ANSIBLE_TAGS', 
             choices: ['webserver', 'nginx', 'apache'], 
             description: 'Ansible tags to restrict role execution targets'
         )
-
     }
 
     environment {
@@ -40,7 +39,7 @@ pipeline {
         stage('Initialise Workspace') {
             steps {
                 echo "Executing securely on workspace branch: ${env.GIT_BRANCH}"
-                echo "Target selection: ${params.inventory} environment using tags: ${params.ansible_tags}"
+                echo "Target selection: ${params.inventory} environment using tags: ${params.ANSIBLE_TAGS}"
             }
         }
 
@@ -62,10 +61,11 @@ pipeline {
                         disableHostKeyChecking: true,
                         installation: 'ansible',
                         inventory: "${WORKSPACE}/inventory/${params.inventory}.yml",
-                        playbook: "${WORKSPACE}/playbooks/site.yml",
-                        // TAGS IMPLEMENTATION BELOW:
-                        // Passes your tag parameter directly into the native Ansible plugin wrapper execution
-                        tags: "${params.ansible_tags}",
+                        playbook: "${WORKSPACE}/${params.PLAYBOOK_PATH}",
+                        tags: "${params.ANSIBLE_TAGS}",
+                        // FIXED PARAMETER INJECTION BELOW:
+                        // Overrides the Jenkins plugin exit codes to ignore offline AWS resource targets
+                        ignoreUnreachable: true,
                         extraVars: [
                             ansible_ssh_timeout: 5, 
                             inventory: "${params.inventory}"
