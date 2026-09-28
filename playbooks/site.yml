@@ -1,9 +1,7 @@
 ---
-- name: Configure Webservers
-  hosts: webservers
-  ignore_unreachable: true
-  tags:
-    - webserver
+- name: Configure Webservers and Deploy TODO Application
+  hosts: webserver
+  remote_user: ec2-user
   roles:
     - webserver
 
