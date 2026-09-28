@@ -61,7 +61,7 @@
     url: "http://172.31.29"
     dest: "/tmp/php-todo.tar.gz"
     url_username: "admin"
-    url_password: "YOUR_JFROG_PASSWORD"
+    url_password: "Qsnecse11"
   tags: [webserver, apache]
 
 # 7. Purge stale deployment directory artifacts
