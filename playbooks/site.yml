@@ -1,6 +1,7 @@
 ---
 - name: Configure Webservers
   hosts: webservers
+  ignore_unreachable: true
   tags:
     - webserver
   roles:

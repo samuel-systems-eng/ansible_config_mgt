@@ -1,138 +1,99 @@
-# tasks file for webserver
 ---
-- name: install apache
-  remote_user: ec2-user
+# 1. Install Apache
+- name: Install Apache Web Server
   become: true
-  become_user: root
+  ignore_unreachable: true
   ansible.builtin.yum:
-    name: "httpd"
+    name: httpd
     state: present
 
-- name: Enable apache
-  remote_user: ec2-user
+# 2. Add EPEL and Remi Repository references for PHP 7.4 availability
+- name: Install EPEL and Remi repositories
   become: true
-  become_user: root
-  ansible.builtin.command:
-    cmd: sudo systemctl enable httpd
+  ignore_unreachable: true
+  ansible.builtin.yum:
+    name:
+      - https://fedoraproject.org
+      - http://remirepo.net
+    state: present
+    disable_gpg_check: yes
 
-- name: Install EPEL release
-  remote_user: ec2-user
+# 3. Enable PHP 7.4 stream layer modules
+- name: Reset and enable PHP 7.4 Remi module stream
   become: true
-  become_user: root
+  ignore_unreachable: true
   ansible.builtin.command:
-    cmd: sudo dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm -y
+    cmd: "dnf module reset php -y && dnf module enable php:remi-7.4 -y"
 
-- name: Install dnf-utils and Remi repository
-  remote_user: ec2-user
+# 4. Install PHP 7.4 core extensions
+- name: Install PHP 7.4 packages and extensions
   become: true
-  become_user: root
-  ansible.builtin.command:
-    cmd: sudo dnf install dnf-utils http://rpms.remirepo.net/enterprise/remi-release-10.rpm -y
-
-- name: Reset PHP module
-  remote_user: ec2-user
-  become: true
-  become_user: root
-  ansible.builtin.command:
-    cmd: sudo dnf module reset php -y
-
-- name: Enable PHP 8.2 module
-  remote_user: ec2-user
-  become: true
-  become_user: root
-  ansible.builtin.command:
-    cmd: sudo dnf module enable php:remi-8.2 -y
-
-- name: Install PHP and extensions
-  remote_user: ec2-user
-  become: true
-  become_user: root
+  ignore_unreachable: true
   ansible.builtin.yum:
     name:
       - php
-      - php-opcache
-      - php-gd
-      - php-curl
       - php-mysqlnd
+      - php-xml
+      - php-mbstring
+      - php-zip
+      - php-curl
+      - unzip
     state: present
+    enablerepo: remi-7.4
 
-- name: Install MySQL client
-  remote_user: ec2-user
+# 5. Boot and enable services
+- name: Ensure Apache and PHP services are enabled and active
   become: true
-  become_user: root
-  ansible.builtin.yum:
-    name: "mariadb"
-    state: present
-
-- name: Start PHP-FPM service
-  remote_user: ec2-user
-  become: true
-  become_user: root
+  ignore_unreachable: true
   ansible.builtin.service:
-    name: php-fpm
+    name: "{{ item }}"
     state: started
-
-- name: Enable PHP-FPM service
-  remote_user: ec2-user
-  become: true
-  become_user: root
-  ansible.builtin.service:
-    name: php-fpm
     enabled: true
+  loop:
+    - httpd
 
-- name: Configure SELinux rule httpd_execmem
-  ansible.posix.seboolean:
-    name: httpd_execmem
-    state: true
-    persistent: true
-
-- name: Configure SELinux rule httpd_can_network_connect
-  ansible.posix.seboolean:
-    name: httpd_can_network_connect
-    state: true
-    persistent: true
-
-- name: Configure SELinux rule httpd_can_network_connect_db
-  ansible.posix.seboolean:
-    name: httpd_can_network_connect_db
-    state: true
-    persistent: true
-
-- name: install git
-  remote_user: ec2-user
+# 6. Fetch your application bundle using YOUR specific Artifactory Private IP
+- name: Download verified application build archive from JFrog Artifactory
   become: true
-  become_user: root
-  ansible.builtin.yum:
-    name: "git"
-    state: present
+  ignore_unreachable: true
+  ansible.builtin.get_url:
+    url: "http://172.31.29.120"
+    dest: "/tmp/php-todo.tar.gz"
+    url_username: "admin"
+    url_password: "Qsnecse11"
 
-- name: clone a repo
-  remote_user: ec2-user
+# 7. Purge stale deployment directory artifacts
+- name: Clear old web server document root directory paths
   become: true
-  become_user: root
-  ansible.builtin.git:
-    repo: https://github.com/samuel-systems-eng/tooling.git
-    dest: /var/www/html
-    force: yes
+  ignore_unreachable: true
+  ansible.builtin.file:
+    path: "/var/www/html/*"
+    state: absent
 
-- name: copy html content to one level up
-  remote_user: ec2-user
+# 8. Extract the code bundle directly into the active web space folder path
+- name: Extract deployment archive package directly into Apache web document root
   become: true
-  become_user: root
-  command: cp -r /var/www/html/html/ /var/www/
+  ignore_unreachable: true
+  ansible.builtin.unarchive:
+    src: "/tmp/php-todo.tar.gz"
+    dest: "/var/www/html/"
+    remote_src: yes
 
-- name: Start service httpd, if not started
-  remote_user: ec2-user
+# 9. Set appropriate file permissions for the RedHat web manager daemon user
+- name: Fix file ownership boundaries for the apache user account profile
   become: true
-  become_user: root
+  ignore_unreachable: true
+  ansible.builtin.file:
+    path: "/var/www/html"
+    owner: apache
+    group: apache
+    recurse: yes
+    mode: '0775'
+
+# 10. Restart Apache to cleanly initialize the application
+- name: Restart Apache to apply configuration updates
+  become: true
+  ignore_unreachable: true
   ansible.builtin.service:
     name: httpd
-    state: started
-
-- name: recursively remove /var/www/html/html/ directory
-  remote_user: ec2-user
-  become: true
-  become_user: root
-  ansible.builtin.file:
-    path: /var/www/html/html
-    state: absent
+    state: restarted

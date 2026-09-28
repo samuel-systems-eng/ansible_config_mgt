@@ -1,8 +1,8 @@
 [Nginx]
 172.31.21.94 ansible_ssh_user=ubuntu
 
-# [Todo]
-# private IP ansible_ssh_user=ec2-user
+[Todo]
+100.55.18.175 ansible_ssh_user=ec2-user
 
 [Tooling]
 172.31.18.179 ansible_ssh_user=ec2-user
