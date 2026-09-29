@@ -35,14 +35,11 @@
     enabled: true
   tags: [webserver, apache]
 
-# 4. Fetch your application bundle using YOUR specific Artifactory Private IP
+# 4. Fetch your application bundle using a bulletproof native terminal pipe
 - name: Download verified application build archive from JFrog Artifactory
   become: true
-  ansible.builtin.get_url:
-    url: "http://172.31.29.120:8082/artifactory/todo-artifacts/php-todo.tar.gz"
-    dest: "/tmp/php-todo.tar.gz"
-    url_username: "admin"
-    url_password: "Qsnecse11"
+  ansible.builtin.shell: |
+    curl -u admin:Qsnecse11 -X GET "http://172.31.29.120:8082/artifactory/todo-artifacts/php-todo.tar.gz" -o /tmp/php-todo.tar.gz
   tags: [webserver, apache]
 
 # 5. Purge stale deployment directory artifacts to keep the app space clean
