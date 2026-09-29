@@ -39,7 +39,7 @@
 - name: Download verified application build archive from JFrog Artifactory
   become: true
   ansible.builtin.get_url:
-    url: "http://172.31.29.120:8082"
+    url: "http://172.31.29.120:8082/php-todo.tar.gz"
     dest: "/tmp/php-todo.tar.gz"
     url_username: "admin"
     url_password: "Qsnecse11"
