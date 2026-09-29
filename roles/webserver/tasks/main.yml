@@ -11,7 +11,7 @@
     state: present
   tags: [webserver, apache]
 
-# 2. FIXED STABLE OVERRIDE: Fetch and register the EPEL & Remi packages onto disk safely via standard shell pipes
+# 2. Fetch and register the EPEL & Remi packages onto disk safely via standard shell pipes
 - name: Download and register stable repository channel parameters on disk memory
   become: true
   ansible.builtin.shell: |
@@ -19,11 +19,12 @@
     dnf install -y http://remirepo.net || true
   tags: [webserver, apache]
 
-# 3. Enable PHP 7.4 stream layer modules inside the Remi container channel paths
+# 3. FIXED: Using the native shell block module to support multi-line command chains cleanly
 - name: Reset and enable PHP 7.4 Remi module stream
   become: true
-  ansible.builtin.command:
-    cmd: "dnf module reset php -y && dnf module enable php:remi-7.4 -y"
+  ansible.builtin.shell: |
+    dnf module reset php -y
+    dnf module enable php:remi-7.4 -y
   tags: [webserver, apache]
 
 # 4. Install PHP 7.4 core extensions and utility unpackers
@@ -95,5 +96,4 @@
   ansible.builtin.service:
     name: httpd
     state: restarted
-  tags: [webserver, apache]
   tags: [webserver, apache]
