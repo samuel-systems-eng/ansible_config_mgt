@@ -11,24 +11,8 @@
     state: present
   tags: [webserver, apache]
 
-# 2. Fetch and register the EPEL & Remi packages onto disk safely via standard shell pipes
-- name: Download and register stable repository channel parameters on disk memory
-  become: true
-  ansible.builtin.shell: |
-    dnf install -y https://fedoraproject.org || true
-    dnf install -y http://remirepo.net || true
-  tags: [webserver, apache]
-
-# 3. FIXED: Using the native shell block module to support multi-line command chains cleanly
-- name: Reset and enable PHP 7.4 Remi module stream
-  become: true
-  ansible.builtin.shell: |
-    dnf module reset php -y
-    dnf module enable php:remi-7.4 -y
-  tags: [webserver, apache]
-
-# 4. Install PHP 7.4 core extensions and utility unpackers
-- name: Install PHP 7.4 packages and extensions
+# 2. Install PHP and its required application extensions directly from native core channels
+- name: Install PHP and application extensions
   become: true
   ansible.builtin.yum:
     name:
@@ -40,10 +24,9 @@
       - php-curl
       - unzip
     state: present
-    enablerepo: remi-7.4
   tags: [webserver, apache]
 
-# 5. Boot and enable services
+# 3. Boot and enable services
 - name: Ensure Apache service is enabled and active
   become: true
   ansible.builtin.service:
@@ -52,17 +35,17 @@
     enabled: true
   tags: [webserver, apache]
 
-# 6. Fetch your application bundle using YOUR specific Artifactory Private IP
+# 4. Fetch your application bundle using YOUR specific Artifactory Private IP
 - name: Download verified application build archive from JFrog Artifactory
   become: true
   ansible.builtin.get_url:
-    url: "http://172.31.29"
+    url: "http://172.31.29.120"
     dest: "/tmp/php-todo.tar.gz"
     url_username: "admin"
     url_password: "Qsnecse11"
   tags: [webserver, apache]
 
-# 7. Purge stale deployment directory artifacts to keep the app space clean
+# 5. Purge stale deployment directory artifacts to keep the app space clean
 - name: Clear old web server document root directory paths
   become: true
   ansible.builtin.file:
@@ -70,7 +53,7 @@
     state: absent
   tags: [webserver, apache]
 
-# 8. Extract the code bundle directly into the active web space folder path
+# 6. Extract the code bundle directly into the active web space folder path
 - name: Extract deployment archive package directly into Apache web document root
   become: true
   ansible.builtin.unarchive:
@@ -79,7 +62,7 @@
     remote_src: yes
   tags: [webserver, apache]
 
-# 9. Set appropriate file permissions for the RedHat web manager daemon user
+# 7. Set appropriate file permissions for the RedHat web manager daemon user
 - name: Fix file ownership boundaries for the apache user account profile
   become: true
   ansible.builtin.file:
@@ -90,7 +73,7 @@
     mode: '0775'
   tags: [webserver, apache]
 
-# 10. Restart Apache to cleanly initialize the application configurations
+# 8. Restart Apache to cleanly initialize the application configurations
 - name: Restart Apache to apply configuration updates
   become: true
   ansible.builtin.service:
