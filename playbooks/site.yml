@@ -3,7 +3,8 @@
   hosts: webserver
   remote_user: ec2-user
   roles:
-    - webserver
+    - role: webserver
+      tags: [webserver, apache]
 
 - name: Include dynamic environment variables
   import_playbook: ../dynamic-assignments/env-vars.yml
