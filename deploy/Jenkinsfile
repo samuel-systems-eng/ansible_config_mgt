@@ -1,29 +1,24 @@
 pipeline {
     agent any
 
+    // Your brilliant String Parameter strategy to force absolute execution control
     parameters {
         choice(
             name: 'inventory', 
             choices: ['dev', 'sit', 'uat'], 
             description: 'Select the target deployment environment profile'
         )
-    
-        choice(
-            name: 'PLAYBOOK_PATH', 
-            choices: ['playbooks/site.yml', 'playbooks/db.yml', 'playbooks/web.yml'], 
-            description: 'Select the target playbook to run'
-        )
-    
-        choice(
-            name: 'CREDENTIALS_ID', 
-            choices: ['private-key', 'prod-key', 'sit-key'], 
-            description: 'Select the SSH key credential profile'
-        )
-    
-        choice(
+        
+        string(
             name: 'ANSIBLE_TAGS', 
-            choices: ['webserver', 'nginx', 'apache'], 
-            description: 'Ansible tags to restrict role execution targets'
+            defaultValue: 'webserver', 
+            description: 'Type tags explicitly here to force-override execution targets (e.g., webserver, apache, all)'
+        )
+        
+        string(
+            name: 'PLAYBOOK_PATH', 
+            defaultValue: 'playbooks/site.yml', 
+            description: 'Target playbook file path profile'
         )
     }
 
@@ -48,7 +43,7 @@ pipeline {
 
         stage('Run Ansible playbook') {
             steps {
-                echo "RUN MATRIX: Invoking Ansible playbook execution against the ${params.inventory} environment..."
+                echo "CACHE FLUSH RUN: Invoking Ansible playbook execution against the ${params.inventory} environment..."
                 sshagent(['private-key']) {
                     sh '''
                         ansible-playbook \
