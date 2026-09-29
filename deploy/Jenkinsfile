@@ -43,7 +43,7 @@ pipeline {
 
         stage('Run Ansible playbook') {
             steps {
-                echo "PIPE RUN: Invoking Ansible playbook execution against the ${params.inventory} environment..."
+                echo "CURL RESOLVED RUN: Invoking Ansible playbook execution against the ${params.inventory} environment..."
                 sshagent(['private-key']) {
                     sh '''
                         ansible-playbook \
