@@ -1,6 +1,6 @@
 ---
 - name: Configure Webservers and Deploy TODO Application
-  hosts: webserver:webservers
+  hosts: Todo
   remote_user: ec2-user
   roles:
     - role: webserver
