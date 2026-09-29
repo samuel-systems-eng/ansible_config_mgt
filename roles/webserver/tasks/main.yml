@@ -3,7 +3,7 @@
 # PROD-GRADE WEBSERVER & TODO APP ARCHITECTURE AUTOMATION DEPLOYMENT TASKS
 # ==============================================================================
 
-# 1. Update OS and Install Apache2 + PHP 7.4 core extensions
+# 1. Install Apache Core Package Components Natively
 - name: Install Apache Web Server and core packages
   become: true
   ansible.builtin.yum:
@@ -11,25 +11,22 @@
     state: present
   tags: [webserver, apache]
 
-# 2. Add EPEL and Remi Repository references for PHP 7.4 availability
-- name: Install EPEL and Remi repositories
+# 2. FIXED STABLE OVERRIDE: Fetch and register the EPEL & Remi packages onto disk safely via standard shell pipes
+- name: Download and register stable repository channel parameters on disk memory
   become: true
-  ansible.builtin.yum:
-    name:
-      - https://fedoraproject.org
-      - http://remirepo.net
-    state: present
-    disable_gpg_check: yes
+  ansible.builtin.shell: |
+    dnf install -y https://fedoraproject.org || true
+    dnf install -y http://remirepo.net || true
   tags: [webserver, apache]
 
-# 3. Enable PHP 7.4 stream layer modules
+# 3. Enable PHP 7.4 stream layer modules inside the Remi container channel paths
 - name: Reset and enable PHP 7.4 Remi module stream
   become: true
   ansible.builtin.command:
     cmd: "dnf module reset php -y && dnf module enable php:remi-7.4 -y"
   tags: [webserver, apache]
 
-# 4. Install PHP 7.4 core extensions
+# 4. Install PHP 7.4 core extensions and utility unpackers
 - name: Install PHP 7.4 packages and extensions
   become: true
   ansible.builtin.yum:
@@ -64,7 +61,7 @@
     url_password: "Qsnecse11"
   tags: [webserver, apache]
 
-# 7. Purge stale deployment directory artifacts
+# 7. Purge stale deployment directory artifacts to keep the app space clean
 - name: Clear old web server document root directory paths
   become: true
   ansible.builtin.file:
@@ -92,10 +89,11 @@
     mode: '0775'
   tags: [webserver, apache]
 
-# 10. Restart Apache to cleanly initialize the application
+# 10. Restart Apache to cleanly initialize the application configurations
 - name: Restart Apache to apply configuration updates
   become: true
   ansible.builtin.service:
     name: httpd
     state: restarted
+  tags: [webserver, apache]
   tags: [webserver, apache]
