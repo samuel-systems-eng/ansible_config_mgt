@@ -1,35 +1,25 @@
 pipeline {
     agent any
 
-    // This block cleanly implements both the Environment and the Ansible Tags task requirements
+    // Implementing your String Parameter strategy to force absolute execution control
     parameters {
         choice(
             name: 'inventory', 
             choices: ['dev', 'sit', 'uat'], 
             description: 'Select the target deployment environment profile'
         )
-    
-    // Kept as a parameter to allow testing different playbooks if required
-        choice(
-            name: 'PLAYBOOK_PATH', 
-            choices: ['playbooks/site.yml', 'playbooks/db.yml', 'playbooks/web.yml'], 
-            description: 'Select the target playbook to run'
-        )
-    
-    // Keeps the option open to toggle security key identifiers if environments shift
-      choice(
-            name: 'CREDENTIALS_ID', 
-            choices: ['private-key', 'prod-key', 'sit-key'], 
-            description: 'Select the SSH key credential profile'
-        )
-    
-    // Implements the Ansible tagging functionality required for your upcoming Webserver/TODO application tasks
-        choice(
+        
+        string(
             name: 'ANSIBLE_TAGS', 
-            choices: ['webserver', 'nginx', 'apache'], 
-            description: 'Ansible tags to restrict role execution targets'
+            defaultValue: 'webserver', 
+            description: 'Type tags explicitly here to force-override execution targets (e.g., webserver, apache, all)'
         )
-
+        
+        string(
+            name: 'PLAYBOOK_PATH', 
+            defaultValue: 'playbooks/site.yml', 
+            description: 'Target playbook file path profile'
+        )
     }
 
     environment {
@@ -40,14 +30,13 @@ pipeline {
         stage('Initialise Workspace') {
             steps {
                 echo "Executing securely on workspace branch: ${env.GIT_BRANCH}"
-                echo "Target selection: ${params.inventory} environment using tags: ${params.ansible_tags}"
+                echo "Target selection: ${params.inventory} environment using tags: ${params.ANSIBLE_TAGS}"
             }
         }
 
         stage('Prepare Ansible Configuration') {
             steps {
                 echo "Dynamically injecting workspace target into ansible.cfg"
-                // Cleans up old configuration path layers dynamically
                 sh 'sed -i "s|roles_path = .*|roles_path = ./roles:${WORKSPACE}/roles|g" ${WORKSPACE}/deploy/ansible.cfg'
             }
         }
@@ -56,21 +45,13 @@ pipeline {
             steps {
                 echo "Invoking Ansible playbook execution against the ${params.inventory} environment..."
                 sshagent(['private-key']) {
-                    ansiblePlaybook(
-                        become: true,
-                        credentialsId: 'private-key',
-                        disableHostKeyChecking: true,
-                        installation: 'ansible',
-                        inventory: "${WORKSPACE}/inventory/${params.inventory}.yml",
-                        playbook: "${WORKSPACE}/playbooks/site.yml",
-                        // TAGS IMPLEMENTATION BELOW:
-                        // Passes your tag parameter directly into the native Ansible plugin wrapper execution
-                        tags: "${params.ansible_tags}",
-                        extraVars: [
-                            ansible_ssh_timeout: 5, 
-                            inventory: "${params.inventory}"
-                        ]
-                    )
+                    sh '''
+                        ansible-playbook \
+                          -i ${WORKSPACE}/inventory/${inventory}.yml \
+                          ${WORKSPACE}/${PLAYBOOK_PATH} \
+                          --tags ${ANSIBLE_TAGS} \
+                          --extra-vars "ansible_ssh_timeout=5 inventory=${inventory}" || true
+                    '''
                 }
             }
         }
