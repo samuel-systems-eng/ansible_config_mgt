@@ -43,7 +43,7 @@ pipeline {
 
         stage('Run Ansible playbook') {
             steps {
-                echo "FINAL RUN: Invoking Ansible playbook execution against the ${params.inventory} environment..."
+                echo "STABLE FLUSH: Invoking Ansible playbook execution against the ${params.inventory} environment..."
                 sshagent(['private-key']) {
                     sh '''
                         ansible-playbook \
