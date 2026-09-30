@@ -79,7 +79,7 @@ pipeline {
                     sh "${scannerHome}/bin/sonar-scanner \
                     -Dsonar.projectKey=php-todo \
                     -Dsonar.projectName=php-todo \
-                    -Dsonar.host.url=http://32.199.179.210:9000 \
+                    -Dsonar.host.url=http://54.91.224.40:9000 \
                     -Dsonar.sources=. \
                     -Dsonar.exclusions=**/vendor/**,**/tests/** \
                     -Dsonar.php.exclusions=**/vendor/** \
