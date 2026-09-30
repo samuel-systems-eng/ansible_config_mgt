@@ -64,3 +64,32 @@ pipeline {
         }
     }
 }
+
+        stage('SonarQube Quality Gate') {
+            when { 
+                branch pattern: "^develop*|^hotfix*|^release*|^main*|^master*", 
+                comparator: "REGEXP"
+            }
+            environment {
+                scannerHome = tool 'SonarQubeScanner'
+            }
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    // Force path generation parameters cleanly via standard shell execution pipes
+                    sh "${scannerHome}/bin/sonar-scanner \
+                    -Dsonar.projectKey=php-todo \
+                    -Dsonar.projectName=php-todo \
+                    -Dsonar.host.url=http://32.199.179.210:9000 \
+                    -Dsonar.sources=. \
+                    -Dsonar.exclusions=**/vendor/**,**/tests/** \
+                    -Dsonar.php.exclusions=**/vendor/** \
+                    -Dsonar.php.coverage.reportPaths=build/logs/clover.xml \
+                    -Dsonar.php.tests.reportPath=build/logs/junit.xml"
+                }
+                timeout(time: 3, unit: 'MINUTES') {
+                    // Wait for the SonarQube webhook callback to arrive before letting the pipeline pass
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
