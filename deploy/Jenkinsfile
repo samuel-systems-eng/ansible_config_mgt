@@ -66,30 +66,27 @@ pipeline {
 }
 
         stage('SonarQube Quality Gate') {
-            when { 
-                branch pattern: "^develop*|^hotfix*|^release*|^main*|^master*", 
-                comparator: "REGEXP"
+        if (env.BRANCH_NAME =~ /^(develop|hotfix|release|main|master)/) {
+            
+            def scannerHome = tool 'SonarQubeScanner'
+            
+            withSonarQubeEnv('sonarqube') {
+                sh "${scannerHome}/bin/sonar-scanner \
+                -Dsonar.projectKey=php-todo \
+                -Dsonar.projectName=php-todo \
+                -Dsonar.host.url=http://54.91.224.40:9000 \
+                -Dsonar.sources=. \
+                -Dsonar.exclusions=**/vendor/**,**/tests/** \
+                -Dsonar.php.exclusions=**/vendor/** \
+                -Dsonar.php.coverage.reportPaths=build/logs/clover.xml \
+                -Dsonar.php.tests.reportPath=build/logs/junit.xml"
             }
-            environment {
-                scannerHome = tool 'SonarQubeScanner'
+            
+            timeout(time: 3, unit: 'MINUTES') {
+                waitForQualityGate abortPipeline: true
             }
-            steps {
-                withSonarQubeEnv('sonarqube') {
-                    // Force path generation parameters cleanly via standard shell execution pipes
-                    sh "${scannerHome}/bin/sonar-scanner \
-                    -Dsonar.projectKey=php-todo \
-                    -Dsonar.projectName=php-todo \
-                    -Dsonar.host.url=http://54.91.224.40:9000 \
-                    -Dsonar.sources=. \
-                    -Dsonar.exclusions=**/vendor/**,**/tests/** \
-                    -Dsonar.php.exclusions=**/vendor/** \
-                    -Dsonar.php.coverage.reportPaths=build/logs/clover.xml \
-                    -Dsonar.php.tests.reportPath=build/logs/junit.xml"
-                }
-                timeout(time: 3, unit: 'MINUTES') {
-                    // Wait for the SonarQube webhook callback to arrive before letting the pipeline pass
-                    waitForQualityGate abortPipeline: true
-                }
-            }
+            
+        } else {
+            echo "Skipping Quality Gate check: Current branch [${env.BRANCH_NAME}] is a developer feature tier."
         }
-
+    }
