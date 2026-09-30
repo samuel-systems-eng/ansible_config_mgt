@@ -64,13 +64,11 @@ pipeline {
         }
     }
 }
+
         stage('SonarQube Quality Gate') {
-        // Evaluate the branch first before allocating any worker resources
         if (env.BRANCH_NAME =~ /^(develop|hotfix|release|main|master)/) {
             
-            // Force execution to stay cleanly inside an active worker node context loop
             node {
-                // Now Jenkins safely extracts the automatic scanner installer directly onto the disk
                 def scannerHome = tool 'SonarQubeScanner'
                 
                 withSonarQubeEnv('sonarqube') {
@@ -85,8 +83,14 @@ pipeline {
                     -Dsonar.php.tests.reportPath=build/logs/junit.xml"
                 }
                 
-                timeout(time: 3, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                // Optimized API polling fallback wrapper
+                timeout(time: 2, unit: 'MINUTES') {
+                    script {
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                            error "Pipeline aborted due to SonarQube Quality Gate Failure: ${qg.status}"
+                        }
+                    }
                 }
             }
             
