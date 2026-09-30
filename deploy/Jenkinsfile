@@ -64,26 +64,30 @@ pipeline {
         }
     }
 }
-
         stage('SonarQube Quality Gate') {
+        // Evaluate the branch first before allocating any worker resources
         if (env.BRANCH_NAME =~ /^(develop|hotfix|release|main|master)/) {
             
-            def scannerHome = tool 'SonarQubeScanner'
-            
-            withSonarQubeEnv('sonarqube') {
-                sh "${scannerHome}/bin/sonar-scanner \
-                -Dsonar.projectKey=php-todo \
-                -Dsonar.projectName=php-todo \
-                -Dsonar.host.url=http://54.91.224.40:9000 \
-                -Dsonar.sources=. \
-                -Dsonar.exclusions=**/vendor/**,**/tests/** \
-                -Dsonar.php.exclusions=**/vendor/** \
-                -Dsonar.php.coverage.reportPaths=build/logs/clover.xml \
-                -Dsonar.php.tests.reportPath=build/logs/junit.xml"
-            }
-            
-            timeout(time: 3, unit: 'MINUTES') {
-                waitForQualityGate abortPipeline: true
+            // Force execution to stay cleanly inside an active worker node context loop
+            node {
+                // Now Jenkins safely extracts the automatic scanner installer directly onto the disk
+                def scannerHome = tool 'SonarQubeScanner'
+                
+                withSonarQubeEnv('sonarqube') {
+                    sh "${scannerHome}/bin/sonar-scanner \
+                    -Dsonar.projectKey=php-todo \
+                    -Dsonar.projectName=php-todo \
+                    -Dsonar.host.url=http://54.91.224.40:9000 \
+                    -Dsonar.sources=. \
+                    -Dsonar.exclusions=**/vendor/**,**/tests/** \
+                    -Dsonar.php.exclusions=**/vendor/** \
+                    -Dsonar.php.coverage.reportPaths=build/logs/clover.xml \
+                    -Dsonar.php.tests.reportPath=build/logs/junit.xml"
+                }
+                
+                timeout(time: 3, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
             
         } else {
