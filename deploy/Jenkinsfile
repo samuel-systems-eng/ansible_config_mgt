@@ -65,7 +65,7 @@ pipeline {
     }
 }
 
-            stage('SonarQube Quality Gate') {
+        stage('SonarQube Quality Gate') {
         if (env.BRANCH_NAME =~ /^(develop|hotfix|release|main|master)/) {
             
             node {
@@ -83,17 +83,17 @@ pipeline {
                     -Dsonar.php.tests.reportPath=build/logs/junit.xml"
                 }
                 
-                timeout(time: 2, unit: 'MINUTES') {
+                // 1. Widen the timeout gate to give the container time to process
+                timeout(time: 5, unit: 'MINUTES') {
                     script {
                         def qg = waitForQualityGate()
                         if (qg.status != 'OK') {
                             error "Pipeline aborted due to SonarQube Quality Gate Failure: ${qg.status}"
                         }
                     }
-                } // <--- END OF TIMEOUT SECTION
+                }
                 
-                // ⏬ PLACE THE NEW STAGES RIGHT HERE ⏬
-                
+                // 2. Clear visual stages placed right inside the node context block
                 stage('Deploy Artifact') {
                     echo "Packaging and pushing verified code payload to JFrog Artifactory..."
                     // Paste your Artifactory upload commands here
@@ -103,10 +103,9 @@ pipeline {
                     echo "Invoking Ansible playbook execution against the dev environment..."
                     // Paste your ansible-playbook execution commands here
                 }
-                
-            } // <--- END OF NODE CONTEXT
+            }
             
-        } else { // <--- START OF ELSE SECTION
+        } else {
             echo "Skipping Quality Gate check: Current branch [${env.BRANCH_NAME}] is a developer feature tier."
         }
     }
