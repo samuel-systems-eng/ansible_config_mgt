@@ -1,0 +1,6 @@
+---
+- name: Deploy and Configure Wireshark Pentesting Environment
+  hosts: pentest
+  become: true
+  roles:
+    - wireshark
