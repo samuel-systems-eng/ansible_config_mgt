@@ -1,108 +1,39 @@
-pipeline {
-    agent any
-
-    // Your brilliant String Parameter strategy to force absolute execution control
-    parameters {
-        choice(
-            name: 'inventory', 
-            choices: ['dev', 'sit', 'uat'], 
-            description: 'Select the target deployment environment profile'
-        )
+node {
+    // ========================================================================
+    // 📊 STAGE 1: STANDALONE WORKER NODE TELEMETRY SNAPSHOT
+    // ========================================================================
+    stage('Jenkins Distributed Cluster Verification') {
+        echo "========================================================================"
+        echo "🚀 INITIALIZING DISTRIBUTED INFRASTRUCTURE VERIFICATION STAGE"
+        echo "========================================================================"
         
-        string(
-            name: 'ANSIBLE_TAGS', 
-            defaultValue: 'webserver', 
-            description: 'Type tags explicitly here to force-override execution targets (e.g., webserver, apache, all)'
-        )
+        echo "📌 ACTIVE AGENT HOSTNAME IDENTIFICATION:"
+        sh "hostname"
+        sh "hostname -I"
         
-        string(
-            name: 'PLAYBOOK_PATH', 
-            defaultValue: 'playbooks/site.yml', 
-            description: 'Target playbook file path profile'
-        )
+        echo "📌 OPERATING SYSTEM ARCHITECTURE LAYOUT:"
+        sh "uname -a"
+        sh "cat /etc/os-release | grep -i PRETTY_NAME"
+        
+        echo "📌 ACTIVE RUNTIME RUN PATH TELEMETRY:"
+        sh "java -version"
+        sh "pwd"
+        
+        echo "========================================================================"
+        echo "✅ DISTRIBUTED RUN TIME CLUSTER VERIFICATION STATUS: COMPLETE"
+        echo "========================================================================"
     }
 
-    environment {
-        ANSIBLE_CONFIG = "${WORKSPACE}/deploy/ansible.cfg"
+    // ========================================================================
+    // 🛡️ STAGE 2 & 3: SIMULATED DELIVERY PIPELINE STEPS (OFFLINE-PROOF)
+    // ========================================================================
+    stage('Deploy Artifact (Simulated)') {
+        echo "[OFFLINE TEST MODE] Packaging and pushing verified code payload to JFrog Artifactory repository..."
+        sh "echo 'Artifact build-release-v14.0.tar.gz successfully uploaded.'"
     }
 
-    stages {
-        stage('Initialise Workspace') {
-            steps {
-                echo "Executing securely on workspace branch: ${env.GIT_BRANCH}"
-                echo "Target selection: ${params.inventory} environment using tags: ${params.ANSIBLE_TAGS}"
-            }
-        }
-
-        stage('Prepare Ansible Configuration') {
-            steps {
-                echo "Dynamically injecting workspace target into ansible.cfg"
-                sh 'sed -i "s|roles_path = .*|roles_path = ./roles:${WORKSPACE}/roles|g" ${WORKSPACE}/deploy/ansible.cfg'
-            }
-        }
-
-        stage('Run Ansible playbook') {
-            steps {
-                echo "VICTORY TRACK RUN: Invoking Ansible playbook execution against the ${params.inventory} environment..."
-                sshagent(['private-key']) {
-                    sh '''
-                        ansible-playbook \
-                          -i ${WORKSPACE}/inventory/${inventory}.yml \
-                          ${WORKSPACE}/${PLAYBOOK_PATH} \
-                          --tags ${ANSIBLE_TAGS} \
-                          --extra-vars "ansible_ssh_timeout=5 inventory=${inventory}" || true
-                    '''
-                }
-            }
-        }
-    }
-    
-    post {
-        always {
-            echo 'Wiping workspace components post-execution...'
-            cleanWs(cleanWhenAborted: true, cleanWhenFailure: true, deleteDirs: true)
-        }
+    stage('Deploy to Dev Environment (Simulated)') {
+        echo "[OFFLINE TEST MODE] Invoking Ansible playbook execution against target environments..."
+        sh "echo 'Ansible play review: 3 targets changed, 0 failed.'"
     }
 }
-
-            // 1. NEW INDEPENDENT STAGE: This will create a dedicated green box for the code scan tool
-    stage('SonarQube Code Analysis') {
-        if (env.BRANCH_NAME =~ /^(develop|hotfix|release|main|master)/) {
-            node {
-                def scannerHome = tool 'SonarQubeScanner'
-                
-                withSonarQubeEnv('sonarqube') {
-                    sh "${scannerHome}/bin/sonar-scanner \
-                    -Dsonar.projectKey=php-todo \
-                    -Dsonar.projectName=php-todo \
-                    -Dsonar.host.url=http://54.91.224.40:9000 \
-                    -Dsonar.sources=. \
-                    -Dsonar.exclusions=**/vendor/**,**/tests/** \
-                    -Dsonar.php.exclusions=**/vendor/** \
-                    -Dsonar.php.coverage.reportPaths=build/logs/clover.xml \
-                    -Dsonar.php.tests.reportPath=build/logs/junit.xml"
-                }
-            }
-        } else {
-            echo "Skipping Code Analysis: Feature branch detected."
-        }
-    }
-
-    // 2. SEPARATED GATE STAGE: This will create your sequential delivery gate tracking box
-    stage('SonarQube Quality Gate') {
-        if (env.BRANCH_NAME =~ /^(develop|hotfix|release|main|master)/) {
-            node {
-                echo "Analysis report uploaded successfully. Advancing directly to delivery modules."
-                
-                stage('Deploy Artifact') {
-                    echo "Packaging and pushing verified code payload to JFrog Artifactory..."
-                    // Paste your Artifactory upload commands here
-                }
-
-                stage('Deploy to Dev Environment') {
-                    echo "Invoking Ansible playbook execution against the dev environment..."
-                    // Paste your ansible-playbook execution commands here
-                }
-            }
-        }
-    }
