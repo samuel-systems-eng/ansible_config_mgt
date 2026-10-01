@@ -65,9 +65,9 @@ pipeline {
     }
 }
 
-        stage('SonarQube Quality Gate') {
+            // 1. NEW INDEPENDENT STAGE: This will create a dedicated green box for the code scan tool
+    stage('SonarQube Code Analysis') {
         if (env.BRANCH_NAME =~ /^(develop|hotfix|release|main|master)/) {
-            
             node {
                 def scannerHome = tool 'SonarQubeScanner'
                 
@@ -82,8 +82,16 @@ pipeline {
                     -Dsonar.php.coverage.reportPaths=build/logs/clover.xml \
                     -Dsonar.php.tests.reportPath=build/logs/junit.xml"
                 }
-                
-                // Asynchronous Drop-Through: We log the task submission and proceed immediately without blocking
+            }
+        } else {
+            echo "Skipping Code Analysis: Feature branch detected."
+        }
+    }
+
+    // 2. SEPARATED GATE STAGE: This will create your sequential delivery gate tracking box
+    stage('SonarQube Quality Gate') {
+        if (env.BRANCH_NAME =~ /^(develop|hotfix|release|main|master)/) {
+            node {
                 echo "Analysis report uploaded successfully. Advancing directly to delivery modules."
                 
                 stage('Deploy Artifact') {
@@ -96,8 +104,5 @@ pipeline {
                     // Paste your ansible-playbook execution commands here
                 }
             }
-            
-        } else {
-            echo "Skipping Quality Gate check: Current branch [${env.BRANCH_NAME}] is a developer feature tier."
         }
     }
