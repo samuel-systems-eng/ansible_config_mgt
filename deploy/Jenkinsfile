@@ -14,11 +14,10 @@ pipeline {
 
         stage('Execute Ansible Playbook Deployment') {
             steps {
-                // HARDENED SOLUTION: Force-injecting the absolute workspace environment paths 
-                // into Ansible's runtime parameters so it resolves inventory and roles perfectly.
+                // FIXED INVENTORY PATH DRIFT: Appended .yml to target your true dev.yml inventory configurations flawlessly!
                 sh """
                     export ANSIBLE_ROLES_PATH="${WORKSPACE}/roles"
-                    ansible-playbook -i ${WORKSPACE}/inventory/dev playbooks/site.yml --extra-vars "version=${params.ARTIFACT_VERSION}"
+                    ansible-playbook -i ${WORKSPACE}/inventory/dev.yml playbooks/site.yml --extra-vars "version=${params.ARTIFACT_VERSION}"
                 """
             }
         }
