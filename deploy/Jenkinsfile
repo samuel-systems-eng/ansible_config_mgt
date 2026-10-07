@@ -2,7 +2,6 @@ pipeline {
     agent any
     
     parameters {
-        // Registers a default placeholder value in case the job is manually clicked without parameters
         string(name: 'ARTIFACT_VERSION', defaultValue: '1.0.0', description: 'Incoming immutable application build version string')
     }
     
@@ -15,9 +14,10 @@ pipeline {
 
         stage('Execute Ansible Playbook Deployment') {
             steps {
-                // FIXED SCOPE EXCEPTION: Using the params object to securely ingest the dynamic build version from the parent job
-                sh "ansible-playbook -i inventory/dev site.yml --extra-vars 'version=${params.ARTIFACT_VERSION}'"
+                // FIXED PATH EXCEPTION: Pointing the orchestrator directly to the playbooks/ subfolder track
+                sh "ansible-playbook -i inventory/dev playbooks/site.yml --extra-vars 'version=${params.ARTIFACT_VERSION}'"
             }
         }
     }
 }
+
