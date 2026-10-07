@@ -1,12 +1,23 @@
-node {
-    stage('SCM Infrastructure Checkout') {
-        checkout scm
+pipeline {
+    agent any
+    
+    parameters {
+        // Registers a default placeholder value in case the job is manually clicked without parameters
+        string(name: 'ARTIFACT_VERSION', defaultValue: '1.0.0', description: 'Incoming immutable application build version string')
     }
+    
+    stages {
+        stage('SCM Infrastructure Checkout') {
+            steps {
+                checkout scm
+            }
+        }
 
-    stage('Execute Ansible Playbook Deployment') {
-        // SECURE FIXED RUNTIME LINE: 
-        // 1. Stripped out the '|| true' failure-masking loops completely so crashes show visibly [Part 2].
-        // 2. Ingests the version parameters dynamically passed down from your parent application pipeline [4b].
-        sh "ansible-playbook -i inventory/dev site.yml --extra-vars 'version=${ARTIFACT_VERSION}'"
+        stage('Execute Ansible Playbook Deployment') {
+            steps {
+                // FIXED SCOPE EXCEPTION: Using the params object to securely ingest the dynamic build version from the parent job
+                sh "ansible-playbook -i inventory/dev site.yml --extra-vars 'version=${params.ARTIFACT_VERSION}'"
+            }
+        }
     }
 }
