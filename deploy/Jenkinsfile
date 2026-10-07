@@ -14,36 +14,13 @@ pipeline {
 
         stage('Execute Ansible Playbook Deployment') {
             steps {
-                // FIXED PATH MATRICES: Running the execution from the root workspace folder.
-                // This ensures Ansible resolves 'inventory/dev' and the root 'roles/' folder flawlessly!
-                sh "ansible-playbook -i inventory/dev playbooks/site.yml --extra-vars 'version=${params.ARTIFACT_VERSION}'"
+                // HARDENED SOLUTION: Force-injecting the absolute workspace environment paths 
+                // into Ansible's runtime parameters so it resolves inventory and roles perfectly.
+                sh """
+                    export ANSIBLE_ROLES_PATH="${WORKSPACE}/roles"
+                    ansible-playbook -i ${WORKSPACE}/inventory/dev playbooks/site.yml --extra-vars "version=${params.ARTIFACT_VERSION}"
+                """
             }
         }
     }
 }
-
-
-
-pipeline {
-    agent any
-    
-    parameters {
-        string(name: 'ARTIFACT_VERSION', defaultValue: '1.0.0', description: 'Incoming immutable application build version string')
-    }
-    
-    stages {
-        stage('SCM Infrastructure Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Execute Ansible Playbook Deployment') {
-            steps {
-                // FIXED PATH EXCEPTION: Pointing the orchestrator directly to the playbooks/ subfolder track
-                sh "ansible-playbook -i inventory/dev playbooks/site.yml --extra-vars 'version=${params.ARTIFACT_VERSION}'"
-            }
-        }
-    }
-}
-
