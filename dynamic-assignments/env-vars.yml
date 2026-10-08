@@ -4,6 +4,6 @@
   tasks:
     - name: Dynamically include environment variables
       include_vars:
-        file: "{{ playbook_dir }}/../env_vars/{{ inventory }}.yml"
+        file: "{{ playbook_dir }}/../env_vars/{{ inventory_file | default('dev') | basename | splitext | first }}.yml"
       tags:
         - always
