@@ -1,4 +1,11 @@
 ---
+- name: Execute Common Baseline Tasks
+  hosts: all
+  become: true
+  ignore_unreachable: true # 🛡️ SECURE PROTECTION: Bypasses offline nodes safely during baseline updates
+  roles:
+    - role: common
+
 - name: Update web and NFS servers
   hosts: webservers, nfs
   remote_user: ec2-user
