@@ -14,11 +14,8 @@ pipeline {
 
         stage('Execute Ansible Playbook Deployment') {
             steps {
-                // FIXED VARIABLE SCOPE: Clear command syntax with extra-vars fallback properties passed cleanly
-                sh """
-                    export ANSIBLE_ROLES_PATH="${WORKSPACE}/roles"
-                    ansible-playbook -i ${WORKSPACE}/inventory/dev.yml playbooks/site.yml --extra-vars "version=${params.ARTIFACT_VERSION} inventory=dev"
-                """
+                // Running from the root workspace so inventory/dev.yml is parsed perfectly
+                sh 'ansible-playbook -i inventory/dev.yml playbooks/site.yml --extra-vars "version=${params.ARTIFACT_VERSION} inventory=dev"'
             }
         }
     }
