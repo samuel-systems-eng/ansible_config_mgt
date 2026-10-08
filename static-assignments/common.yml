@@ -5,7 +5,7 @@
   become: true
   ignore_unreachable: true # 🛡️ Bypasses offline nodes safely during baseline updates
   roles:
-    - role: common # 🚀 CLEAN TEXT STRING: Solved natively via global configuration pathways!
+    - role: ../roles/common # 🚀 FIXED DIRECTORY LOCK: Explicit relative path traversal from static-assignments/
 
 # PLAY 2: RedHat Web and Storage Configurations
 - name: Update web and NFS servers
@@ -13,7 +13,7 @@
   remote_user: ec2-user
   become: true
   become_user: root
-  ignore_unreachable: true # 🛡️ Bypasses stopped AWS free-tier instances cleanly
+  ignore_unreachable: true
   tasks:
     - name: Ensure wireshark is at the latest version
       yum:
@@ -26,7 +26,7 @@
   remote_user: ubuntu
   become: true
   become_user: root
-  ignore_unreachable: true # 🛡️ Bypasses stopped AWS free-tier instances cleanly
+  ignore_unreachable: true
   tasks:
     - name: Update apt repo
       apt:
