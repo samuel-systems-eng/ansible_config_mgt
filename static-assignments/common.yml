@@ -1,5 +1,4 @@
 ---
----
 # PLAY 1: Core Baseline Role Remediations
 - name: Execute Common Baseline Tasks
   hosts: all
