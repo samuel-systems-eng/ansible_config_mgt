@@ -1,7 +1,9 @@
 ---
 - name: Configure Webservers and Deploy TODO Application
-  hosts: Todo
+  hosts: all
+  become: true
   remote_user: ec2-user
+  ignore_unreachable: true # Bypasses stopped AWS free-tier instances cleanly across all versions of Ansible
   roles:
     - role: webserver
       tags: [webserver, apache]
