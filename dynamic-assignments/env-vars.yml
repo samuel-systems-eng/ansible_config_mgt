@@ -1,6 +1,7 @@
 ---
 - name: Collate variables from environment-specific file
   hosts: all
+  ignore_unreachable: true # 🛡️ SECURE PROTECTION: Prevents stopped nodes from crashing the variable lookup stage
   tasks:
     - name: Dynamically include environment variables
       include_vars:
