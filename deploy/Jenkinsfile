@@ -14,9 +14,12 @@ pipeline {
 
         stage('Execute Ansible Playbook Deployment') {
             steps {
-                // FIXED ENVIRONMENT RUNTIME: Force-injecting the absolute workspace environment parameters 
-                // directly into the environment block variables so it resolves inventory/dev.yml and roles/ flawlessly!
-                withEnv(["ANSIBLE_ROLES_PATH=${WORKSPACE}/roles", "ANSIBLE_CONFIG=${WORKSPACE}/ansible.cfg"]) {
+                // HARDENED RUNTIME ENVIRONMENT: Force-injecting absolute workspace execution paths 
+                // so Ansible maps your root 'roles/' folder and configurations cleanly across all imported playbooks
+                withEnv([
+                    "ANSIBLE_ROLES_PATH=${WORKSPACE}/roles",
+                    "ANSIBLE_CONFIG=${WORKSPACE}/ansible.cfg"
+                ]) {
                     sh "ansible-playbook -i ${WORKSPACE}/inventory/dev.yml ${WORKSPACE}/playbooks/site.yml --extra-vars 'version=${params.ARTIFACT_VERSION} inventory=dev'"
                 }
             }
