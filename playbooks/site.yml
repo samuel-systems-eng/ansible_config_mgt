@@ -11,15 +11,15 @@
       include_vars:
         file: "{{ playbook_dir }}/../env_vars/{{ inventory_file | default('dev') | basename | splitext | first }}.yml"
 
-    # 2. Execute the baseline configuration role across all cluster nodes using clear path traversal
+    # 2. Execute the baseline configuration role across all cluster nodes natively
     - name: Execute Common Baseline Tasks
       include_role:
-        name: "../roles/common"
+        name: common
 
     # 3. Execute the webserver configuration role exclusively on target web application nodes
     - name: Execute Webserver Configuration Tasks
       include_role:
-        name: "../roles/webserver"
+        name: webserver
       when: "'webservers' in group_names"
 
 # PLAY 2: Baseline Package Version Auditing
@@ -37,3 +37,4 @@
       package:
         name: wireshark
         state: latest
+
