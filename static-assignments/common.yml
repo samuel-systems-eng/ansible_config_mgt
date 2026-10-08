@@ -1,11 +1,12 @@
 ---
+---
 # PLAY 1: Core Baseline Role Remediations
 - name: Execute Common Baseline Tasks
   hosts: all
   become: true
   ignore_unreachable: true # 🛡️ Bypasses offline nodes safely during baseline updates
   roles:
-    - role: "{{ ansible_env.WORKSPACE | default('/var/lib/jenkins/workspace/Multibranch_pipeline_develop') }}/roles/common"
+    - role: common # 🚀 CLEAN TEXT STRING: Solved natively via global configuration pathways!
 
 # PLAY 2: RedHat Web and Storage Configurations
 - name: Update web and NFS servers
