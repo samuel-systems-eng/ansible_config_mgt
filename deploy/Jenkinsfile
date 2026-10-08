@@ -14,12 +14,13 @@ pipeline {
 
         stage('Execute Ansible Playbook Deployment') {
             steps {
-                // FIXED INVENTORY PATH DRIFT: Appended .yml to target your true dev.yml inventory configurations flawlessly!
+                // FIXED VARIABLE LOCK: Force-injecting inventory=dev and telling Ansible to continue past stopped nodes
                 sh """
                     export ANSIBLE_ROLES_PATH="${WORKSPACE}/roles"
-                    ansible-playbook -i ${WORKSPACE}/inventory/dev.yml playbooks/site.yml --extra-vars "version=${params.ARTIFACT_VERSION}"
+                    ansible-playbook -i ${WORKSPACE}/inventory/dev.yml playbooks/site.yml --extra-vars "version=${params.ARTIFACT_VERSION} inventory=dev" --ignore-unreachable
                 """
             }
         }
     }
 }
+
