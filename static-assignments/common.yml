@@ -5,7 +5,7 @@
   become: true
   ignore_unreachable: true # 🛡️ Bypasses offline nodes safely during baseline updates
   roles:
-    - role: "{{ playbook_dir }}/../roles/common"
+    - role: "{{ ansible_env.WORKSPACE | default('/var/lib/jenkins/workspace/Multibranch_pipeline_develop') }}/roles/common"
 
 # PLAY 2: RedHat Web and Storage Configurations
 - name: Update web and NFS servers
@@ -36,4 +36,4 @@
       apt:
         name: wireshark
         state: latest
-        
+
