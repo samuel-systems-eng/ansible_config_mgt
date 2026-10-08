@@ -6,20 +6,22 @@
   remote_user: ec2-user
   ignore_unreachable: true
   tasks:
-    # Dynamically resolve variables based on your active environment file
+    # 1. Dynamically resolve variables based on your active environment file
     - name: Dynamically include environment variables
       include_vars:
         file: "{{ playbook_dir }}/../env_vars/{{ inventory_file | default('dev') | basename | splitext | first }}.yml"
 
-    # Execute the baseline configuration role across all available cluster nodes
+    # 2. Execute the baseline configuration role across all cluster nodes using explicit workspace pathing
     - name: Execute Common Baseline Tasks
       include_role:
         name: common
+        roles_path: "{{ playbook_dir }}/../roles"
 
-    # Execute the webserver configuration role exclusively on target web application nodes
+    # 3. Execute the webserver configuration role exclusively on target web application nodes
     - name: Execute Webserver Configuration Tasks
       include_role:
         name: webserver
+        roles_path: "{{ playbook_dir }}/../roles"
       when: "'webservers' in group_names"
 
 # PLAY 2: Baseline Package Version Auditing
@@ -37,3 +39,4 @@
       package:
         name: wireshark
         state: latest
+
