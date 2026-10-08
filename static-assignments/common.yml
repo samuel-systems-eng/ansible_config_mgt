@@ -3,9 +3,9 @@
 - name: Execute Common Baseline Tasks
   hosts: all
   become: true
-  ignore_unreachable: true # 🛡️ Bypasses offline nodes safely during baseline updates
+  ignore_unreachable: true
   roles:
-    - role: ../roles/common # 🚀 FIXED DIRECTORY LOCK: Explicit relative path traversal from static-assignments/
+    - role: common # 🚀 Clean, standard text notation
 
 # PLAY 2: RedHat Web and Storage Configurations
 - name: Update web and NFS servers
