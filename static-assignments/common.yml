@@ -1,27 +1,32 @@
 ---
+# PLAY 1: Core Baseline Role Remediations
 - name: Execute Common Baseline Tasks
   hosts: all
   become: true
-  ignore_unreachable: true # 🛡️ SECURE PROTECTION: Bypasses offline nodes safely during baseline updates
+  ignore_unreachable: true # 🛡️ Bypasses offline nodes safely during baseline updates
   roles:
-    - role: common
+    - role: "{{ playbook_dir }}/../roles/common"
 
+# PLAY 2: RedHat Web and Storage Configurations
 - name: Update web and NFS servers
   hosts: webservers, nfs
   remote_user: ec2-user
   become: true
   become_user: root
+  ignore_unreachable: true # 🛡️ Bypasses stopped AWS free-tier instances cleanly
   tasks:
     - name: Ensure wireshark is at the latest version
       yum:
         name: wireshark
         state: latest
 
+# PLAY 3: Ubuntu Load Balancers and Databases
 - name: Update LB and DB servers
   hosts: lb, db
   remote_user: ubuntu
   become: true
   become_user: root
+  ignore_unreachable: true # 🛡️ Bypasses stopped AWS free-tier instances cleanly
   tasks:
     - name: Update apt repo
       apt:
