@@ -14,8 +14,8 @@ pipeline {
 
         stage('Execute Ansible Playbook Deployment') {
             steps {
-                // Running from the root workspace so inventory/dev.yml is parsed perfectly
-                sh 'ansible-playbook -i inventory/dev.yml playbooks/site.yml --extra-vars "version=${params.ARTIFACT_VERSION} inventory=dev"'
+                // FIXED QUOTE TYPE: Double quotes expand the dynamic version parameters flawlessly before execution
+                sh "ansible-playbook -i inventory/dev.yml playbooks/site.yml --extra-vars 'version=${params.ARTIFACT_VERSION} inventory=dev'"
             }
         }
     }
