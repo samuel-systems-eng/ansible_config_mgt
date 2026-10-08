@@ -1,36 +1,30 @@
 ---
-# PLAY 1: Comprehensive Cluster Deployment
-- name: Hardened Multi-Tier Infrastructure Deployment
-  hosts: all
+# PLAY 1: Webserver Application Infrastructure & Role Deployment
+- name: Configure Webservers and Deploy TODO Application
+  hosts: webservers
   become: true
   remote_user: ec2-user
+  ignore_unreachable: true  # 🛡️ Bypasses stopped AWS free-tier instances cleanly
+  roles:
+    - role: webserver
+      tags: [webserver, apache]
+
+# PLAY 2: Import Dynamic Variable Mapping Layers
+- name: Include dynamic environment variables
+  import_playbook: ../dynamic-assignments/env-vars.yml
   ignore_unreachable: true
-  tasks:
-    - name: Dynamically include environment variables
-      include_vars:
-        file: "{{ playbook_dir }}/../env_vars/{{ inventory_file | default('dev') | basename | splitext | first }}.yml"
 
-    - name: Execute Common Baseline Tasks
-      include_role:
-        name: common
-
-    - name: Execute Webserver Configuration Tasks
-      include_role:
-        name: webserver
-      when: "'webservers' in group_names"
-
-# PLAY 2: Baseline Package Version Auditing
-- name: Ensure baseline packages are at the latest version
-  hosts: all
-  become: true
+# PLAY 3: Import Baseline Environment Assignments
+- name: Import webserver assignment
+  import_playbook: ../static-assignments/common.yml
   ignore_unreachable: true
-  tasks:
-    - name: Update apt repo for Debian nodes
-      apt:
-        update_cache: yes
-      when: ansible_os_family == "Debian"
 
-    - name: Ensure wireshark is at the latest version
-      package:
-        name: wireshark
-        state: latest
+# PLAY 4: Import Load Balancer Assignments
+- name: Import load balancer assignment
+  import_playbook: ../static-assignments/loadbalancers.yml
+  ignore_unreachable: true
+
+# PLAY 5: Import Database Cluster Assignments
+- name: Import db-server assignment
+  import_playbook: ../static-assignments/db-servers.yml
+  ignore_unreachable: true
