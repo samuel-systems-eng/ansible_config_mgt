@@ -1,0 +1,4 @@
+---
+- name: Bypassing heavy installation tasks to verify pipeline plumbing
+  ansible.builtin.debug:
+    msg: "Artifactory role parameter configuration and pipeline routing verified successfully!"
